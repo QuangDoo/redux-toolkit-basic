@@ -6,7 +6,7 @@ const initialState: Post = {
   id: '',
   title: '',
   description: '',
-  publishDate: new Date(),
+  publishDate: '',
   featuredImage: '',
   published: false
 };

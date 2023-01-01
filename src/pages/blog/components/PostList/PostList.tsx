@@ -1,9 +1,16 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { PostItem } from '../PostItem';
 import { RootState } from 'store';
+import { deletePost } from 'pages/blog/blog.reducer';
 
 const PostList = () => {
   const postList = useSelector((state: RootState) => state.blog.postList);
+
+  const dispatch = useDispatch();
+
+  const handleDeletePost = (id: string) => {
+    dispatch(deletePost(id));
+  };
 
   return (
     <div className='bg-white py-6 sm:py-8 lg:py-12'>
@@ -19,7 +26,7 @@ const PostList = () => {
         </div>
         <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
           {postList.map((post) => (
-            <PostItem key={post.id} {...post} />
+            <PostItem key={post.id} {...post} onDelete={handleDeletePost} />
           ))}
         </div>
       </div>

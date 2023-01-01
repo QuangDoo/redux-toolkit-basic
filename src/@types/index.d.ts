@@ -8,7 +8,7 @@ type Post = {
   id: string;
   title: string;
   description: string;
-  publishDate: Date;
+  publishDate: string;
   featuredImage: string;
   published: boolean;
 };
