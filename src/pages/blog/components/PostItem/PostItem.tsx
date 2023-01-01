@@ -1,7 +1,22 @@
-type Props = Post;
+type Props = Post & {
+  onDelete: (postId: string) => void;
+};
 
-const PostItem = (props: Omit<Props, 'id'>) => {
-  const { title, description, publishDate, featuredImage, ...rest } = props;
+const PostItem = (props: Props) => {
+  const {
+    id,
+    title,
+    description,
+    publishDate,
+    featuredImage,
+    onDelete,
+    ...rest
+  } = props;
+
+  const handleDelete = () => () => {
+    onDelete(id);
+  };
+
   return (
     <>
       {rest.published && (
@@ -31,6 +46,7 @@ const PostItem = (props: Omit<Props, 'id'>) => {
                 <button
                   type='button'
                   className='rounded-r-lg border-t border-b border-r border-gray-200 bg-white py-2 px-4 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700'
+                  onClick={handleDelete()}
                 >
                   Delete
                 </button>
