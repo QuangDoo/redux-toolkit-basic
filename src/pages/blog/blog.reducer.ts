@@ -1,4 +1,4 @@
-import { createAction, createReducer } from '@reduxjs/toolkit';
+import { createAction, createReducer, current } from '@reduxjs/toolkit';
 import {
   AddPostAction,
   DeletePostAction,
@@ -22,33 +22,43 @@ export const deletePost = createAction<string>(DeletePostAction);
 export const editPost = createAction<Post>(EditPostAction);
 export const updatePost = createAction<Post>(UpdatePostAction);
 
-const blogReducer = createReducer(initialState, (builder) => {
-  builder
-    .addCase(addPost, (state, action) => {
-      state.postList.push(action.payload);
-    })
-    .addCase(deletePost, (state, action) => {
-      const postIndex = state.postList.findIndex(
-        (post) => post.id === action.payload
-      );
-      if (postIndex !== -1) {
-        state.postList.splice(postIndex, 1);
-      }
-    })
-    .addCase(editPost, (state, action) => {
-      if (action.payload !== null) {
-        state.currentPost = action.payload;
-      }
-    })
-    .addCase(updatePost, (state, action) => {
-      state.postList.map((post, index) => {
-        if (post.id === action.payload?.id) {
-          state.postList[index] = action.payload;
+const blogReducer = createReducer(
+  initialState,
+  // Builder callback
+  (builder) => {
+    builder
+      .addCase(addPost, (state, action) => {
+        state.postList.push(action.payload);
+      })
+      .addCase(deletePost, (state, action) => {
+        const postIndex = state.postList.findIndex(
+          (post) => post.id === action.payload
+        );
+        if (postIndex !== -1) {
+          state.postList.splice(postIndex, 1);
         }
+      })
+      .addCase(editPost, (state, action) => {
+        if (action.payload !== null) {
+          state.currentPost = action.payload;
+        }
+      })
+      .addCase(updatePost, (state, action) => {
+        state.postList.map((post, index) => {
+          if (post.id === action.payload?.id) {
+            state.postList[index] = action.payload;
+          }
 
-        return post;
-      });
-    });
-});
+          return post;
+        });
+      })
+      .addMatcher(
+        (action) => action.type.includes('editPost'),
+        (state, action) => {
+          console.log('state', current(state));
+        }
+      );
+  }
+);
 
 export default blogReducer;
