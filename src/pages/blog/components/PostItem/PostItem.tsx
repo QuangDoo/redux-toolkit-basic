@@ -1,5 +1,6 @@
 type Props = Post & {
   onDelete: (postId: string) => void;
+  onEdit: (post: Post) => void;
 };
 
 const PostItem = (props: Props) => {
@@ -10,11 +11,23 @@ const PostItem = (props: Props) => {
     publishDate,
     featuredImage,
     onDelete,
+    onEdit,
     ...rest
   } = props;
 
   const handleDelete = () => () => {
     onDelete(id);
+  };
+
+  const handleEdit = () => () => {
+    onEdit({
+      id,
+      title,
+      description,
+      publishDate,
+      featuredImage,
+      published: rest.published
+    });
   };
 
   return (
@@ -40,6 +53,7 @@ const PostItem = (props: Props) => {
                 <button
                   type='button'
                   className='rounded-l-lg border border-gray-200 bg-white py-2 px-4 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700'
+                  onClick={handleEdit()}
                 >
                   Edit
                 </button>

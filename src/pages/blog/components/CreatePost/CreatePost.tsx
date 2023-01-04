@@ -1,6 +1,7 @@
-import { addPost } from 'pages/blog/blog.reducer';
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { addPost, editPost, updatePost } from 'pages/blog/blog.reducer';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from 'store';
 
 const initialState: Post = {
   id: '',
@@ -15,6 +16,10 @@ const CreatePost = () => {
   const [formData, setFormData] = useState<Post>(initialState);
 
   const dispatch = useDispatch();
+
+  const currentPost = useSelector(
+    (state: RootState) => state.blog.currentPost as Post
+  );
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>
@@ -33,16 +38,29 @@ const CreatePost = () => {
   const handleSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const formDataId = { ...formData, id: new Date().toDateString() };
+    if (currentPost) {
+      dispatch(updatePost(formData));
+    } else {
+      if (
+        new Date().toISOString() > formData.publishDate.toString() &&
+        !currentPost
+      ) {
+        throw new Error('Invalid publish date');
+      }
 
-    if (new Date().toISOString() > formData.publishDate.toString()) {
-      throw new Error('Invalid publish date');
+      const formDataId = { ...formData, id: new Date().toDateString() };
+
+      dispatch(addPost(formDataId));
     }
-
-    dispatch(addPost(formDataId));
 
     setFormData(initialState);
   };
+
+  useEffect(() => {
+    if (!currentPost) return;
+
+    setFormData(currentPost);
+  }, [currentPost]);
 
   return (
     <form onSubmit={handleSubmitForm}>
@@ -59,7 +77,7 @@ const CreatePost = () => {
           className='block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500'
           placeholder='Title'
           required
-          value={formData.title}
+          value={formData?.title}
           name='title'
           onChange={handleChange}
         />
@@ -79,7 +97,7 @@ const CreatePost = () => {
           name='featuredImage'
           required
           onChange={handleChange}
-          value={formData.featuredImage}
+          value={formData?.featuredImage}
         />
       </div>
       <div className='mb-6'>
@@ -97,7 +115,7 @@ const CreatePost = () => {
             placeholder='Your description...'
             onChange={handleChange}
             name='description'
-            value={formData.description}
+            value={formData?.description}
           />
         </div>
       </div>
@@ -115,7 +133,7 @@ const CreatePost = () => {
           placeholder='Title'
           required
           name='publishDate'
-          value={formData.publishDate.toString()}
+          value={formData?.publishDate.toString()}
           onChange={handleChange}
         />
       </div>
@@ -125,7 +143,7 @@ const CreatePost = () => {
           type='checkbox'
           className='h-4 w-4 focus:ring-2 focus:ring-blue-500'
           onChange={handleChange}
-          checked={formData.published}
+          checked={formData?.published}
           name='published'
         />
         <label
@@ -139,6 +157,7 @@ const CreatePost = () => {
         <button
           className='group relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-600 to-blue-500 p-0.5 text-sm font-medium text-gray-900 hover:text-white focus:outline-none focus:ring-4 focus:ring-blue-300 group-hover:from-purple-600 group-hover:to-blue-500 dark:text-white dark:focus:ring-blue-800'
           type='submit'
+          disabled={!!currentPost}
         >
           <span className='relative rounded-md bg-white px-5 py-2.5 transition-all duration-75 ease-in group-hover:bg-opacity-0 dark:bg-gray-900'>
             Publish Post

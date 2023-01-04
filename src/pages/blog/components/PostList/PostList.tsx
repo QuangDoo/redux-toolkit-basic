@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { PostItem } from '../PostItem';
 import { RootState } from 'store';
-import { deletePost } from 'pages/blog/blog.reducer';
+import { deletePost, editPost } from 'pages/blog/blog.reducer';
 
 const PostList = () => {
   const postList = useSelector((state: RootState) => state.blog.postList);
@@ -10,6 +10,11 @@ const PostList = () => {
 
   const handleDeletePost = (id: string) => {
     dispatch(deletePost(id));
+  };
+
+  // store current post
+  const handleEditPost = (post: Post) => {
+    dispatch(editPost(post));
   };
 
   return (
@@ -26,7 +31,12 @@ const PostList = () => {
         </div>
         <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
           {postList.map((post) => (
-            <PostItem key={post.id} {...post} onDelete={handleDeletePost} />
+            <PostItem
+              key={post.id}
+              {...post}
+              onDelete={handleDeletePost}
+              onEdit={handleEditPost}
+            />
           ))}
         </div>
       </div>
