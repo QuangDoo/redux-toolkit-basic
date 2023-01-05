@@ -1,4 +1,4 @@
-import { addPost, editPost, updatePost } from 'pages/blog/blog.reducer';
+import { addPost, updatePost } from 'pages/blog/blog.slice';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'store';
@@ -68,6 +68,7 @@ const CreatePost = () => {
         <label
           htmlFor='title'
           className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'
+          onClick={() => dispatch({ type: 'edit' })}
         >
           Title
         </label>
