@@ -1,12 +1,25 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { PostItem } from '../PostItem';
+import { useAppDispatch } from 'hooks';
+import { deletePost, editPost, getPostList } from 'pages/blog/blog.slice';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { RootState } from 'store';
-import { deletePost, editPost } from 'pages/blog/blog.slice';
+import { PostItem } from '../PostItem';
+import { SkeletonLoading } from '../SkeletonLoading';
 
 const PostList = () => {
-  const postList = useSelector((state: RootState) => state.blog.postList);
+  const { postList, loading } = useSelector((state: RootState) => state.blog);
 
-  const dispatch = useDispatch();
+  console.log('loading', loading);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const promise = dispatch(getPostList());
+
+    return () => {
+      promise.abort();
+    };
+  }, [dispatch]);
 
   const handleDeletePost = (id: string) => {
     dispatch(deletePost(id));
@@ -30,14 +43,22 @@ const PostList = () => {
           </p>
         </div>
         <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
-          {postList.map((post) => (
-            <PostItem
-              key={post.id}
-              {...post}
-              onDelete={handleDeletePost}
-              onEdit={handleEditPost}
-            />
-          ))}
+          {loading ? (
+            <>
+              <SkeletonLoading />
+              <SkeletonLoading />
+              <SkeletonLoading />
+            </>
+          ) : (
+            postList.map((post) => (
+              <PostItem
+                key={post.id}
+                {...post}
+                onDelete={handleDeletePost}
+                onEdit={handleEditPost}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

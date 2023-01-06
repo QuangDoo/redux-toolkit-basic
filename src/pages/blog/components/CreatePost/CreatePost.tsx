@@ -1,6 +1,7 @@
+import { useAppDispatch } from 'hooks';
 import { addPost, updatePost } from 'pages/blog/blog.slice';
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from 'store';
 
 const initialState: Post = {
@@ -12,14 +13,25 @@ const initialState: Post = {
   published: false
 };
 
+type ErrorForm = {
+  publishDate: string;
+};
+
 const CreatePost = () => {
   const [formData, setFormData] = useState<Post>(initialState);
+  const [errorForm, setErrorForm] = useState<ErrorForm | null>(null);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const currentPost = useSelector(
     (state: RootState) => state.blog.currentPost as Post
   );
+
+  useEffect(() => {
+    if (!currentPost) return;
+
+    setFormData(currentPost);
+  }, [currentPost]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>
@@ -39,7 +51,15 @@ const CreatePost = () => {
     e.preventDefault();
 
     if (currentPost) {
-      dispatch(updatePost(formData));
+      dispatch(updatePost({ postId: formData.id, post: formData }))
+        .unwrap()
+        .then((res) => {
+          setFormData(initialState);
+          if (errorForm) {
+            setErrorForm(null);
+          }
+        })
+        .catch((error) => setErrorForm(error.error));
     } else {
       if (
         new Date().toISOString() > formData.publishDate.toString() &&
@@ -48,19 +68,10 @@ const CreatePost = () => {
         throw new Error('Invalid publish date');
       }
 
-      const formDataId = { ...formData, id: new Date().toDateString() };
-
-      dispatch(addPost(formDataId));
+      const formDataWithId = { ...formData };
+      dispatch(addPost(formDataWithId));
     }
-
-    setFormData(initialState);
   };
-
-  useEffect(() => {
-    if (!currentPost) return;
-
-    setFormData(currentPost);
-  }, [currentPost]);
 
   return (
     <form onSubmit={handleSubmitForm}>
@@ -123,7 +134,9 @@ const CreatePost = () => {
       <div className='mb-6'>
         <label
           htmlFor='publishDate'
-          className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'
+          className={`mb-2 block text-sm font-medium  dark:text-gray-300 ${
+            !!errorForm?.publishDate ? `text-red-700` : 'text-gray-900'
+          }`}
         >
           Publish Date
         </label>
