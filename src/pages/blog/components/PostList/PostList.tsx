@@ -1,25 +1,15 @@
 import { useAppDispatch } from 'hooks';
-import { deletePost, editPost, getPostList } from 'pages/blog/blog.slice';
-import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from 'store';
+import { deletePost, editPost } from 'pages/blog/blog.slice';
+import { useGetPostListQuery } from 'pages/blog/services';
 import { PostItem } from '../PostItem';
 import { SkeletonLoading } from '../SkeletonLoading';
 
 const PostList = () => {
-  const { postList, loading } = useSelector((state: RootState) => state.blog);
-
-  console.log('loading', loading);
+  // isLoading only used for first render
+  // isFetching used for each calling api
+  const { data: postList, isFetching, isLoading } = useGetPostListQuery();
 
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    const promise = dispatch(getPostList());
-
-    return () => {
-      promise.abort();
-    };
-  }, [dispatch]);
 
   const handleDeletePost = (id: string) => {
     dispatch(deletePost(id));
@@ -43,13 +33,15 @@ const PostList = () => {
           </p>
         </div>
         <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
-          {loading ? (
+          {isFetching ? (
             <>
+              <SkeletonLoading />
               <SkeletonLoading />
               <SkeletonLoading />
               <SkeletonLoading />
             </>
           ) : (
+            postList?.length &&
             postList.map((post) => (
               <PostItem
                 key={post.id}
