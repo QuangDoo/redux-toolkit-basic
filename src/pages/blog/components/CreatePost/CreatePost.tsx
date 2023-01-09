@@ -1,5 +1,6 @@
 import { useAppDispatch } from 'hooks';
-import { addPost, updatePost } from 'pages/blog/blog.slice';
+import { updatePost } from 'pages/blog/blog.slice';
+import { useAddPostMutation } from 'pages/blog/services';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store';
@@ -21,6 +22,8 @@ const CreatePost = () => {
   const [formData, setFormData] = useState<Post>(initialState);
   const [errorForm, setErrorForm] = useState<ErrorForm | null>(null);
 
+  const [addPost, { isSuccess }] = useAddPostMutation();
+
   const dispatch = useAppDispatch();
 
   const currentPost = useSelector(
@@ -32,6 +35,10 @@ const CreatePost = () => {
 
     setFormData(currentPost);
   }, [currentPost]);
+
+  useEffect(() => {
+    setFormData(initialState);
+  }, [isSuccess]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>
@@ -69,7 +76,7 @@ const CreatePost = () => {
       }
 
       const formDataWithId = { ...formData };
-      dispatch(addPost(formDataWithId));
+      addPost(formDataWithId);
     }
   };
 
