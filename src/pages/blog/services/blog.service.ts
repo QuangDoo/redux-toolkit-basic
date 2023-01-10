@@ -38,8 +38,6 @@ export const blogApi = createApi({
          *  }[]
          *```
          * vì thế phải thêm as const vào để báo hiệu type là Read only, không thể mutate
-         * vậy id để làm gì?
-         * chức năng edit và delete sẽ tìm hiểu nhé
          */
         if (result) {
           const final = [
@@ -50,6 +48,9 @@ export const blogApi = createApi({
         }
         return [{ type: 'Posts', id: 'LIST' }];
       }
+    }),
+    getPost: builder.query<Post, string>({
+      query: (id) => ({ url: `posts/${id}` })
     }),
     addPost: builder.mutation<Post, Pick<Post, 'id'>>({
       query: (post) => ({
@@ -63,6 +64,21 @@ export const blogApi = createApi({
        * Trong trường hợp này getPosts sẽ chạy lại
        */
       invalidatesTags: (result, error, body) => [{ type: 'Posts', id: 'LIST' }]
+    }),
+    updatePost: builder.mutation<Post, Partial<Post>>({
+      query: (body) => ({
+        url: `posts/${body.id}`,
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: (result) => [{ type: 'Posts', id: result?.id }]
+    }),
+    deletePost: builder.mutation<{}, string>({
+      query: (id) => ({
+        url: `posts/${id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (result, error, id) => [{ type: 'Posts', id }]
     })
   })
 });
@@ -70,5 +86,9 @@ export const blogApi = createApi({
 export const {
   useGetPostListQuery,
   useLazyGetPostListQuery,
-  useAddPostMutation
+  useLazyGetPostQuery,
+  useGetPostQuery,
+  useAddPostMutation,
+  useUpdatePostMutation,
+  useDeletePostMutation
 } = blogApi;

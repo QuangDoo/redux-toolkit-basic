@@ -1,6 +1,10 @@
 import { useAppDispatch } from 'hooks';
-import { updatePost } from 'pages/blog/blog.slice';
-import { useAddPostMutation } from 'pages/blog/services';
+import { cancelUpdatePost } from 'pages/blog/blog.slice';
+import {
+  useAddPostMutation,
+  useLazyGetPostQuery,
+  useUpdatePostMutation
+} from 'pages/blog/services';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store';
@@ -23,22 +27,27 @@ const CreatePost = () => {
   const [errorForm, setErrorForm] = useState<ErrorForm | null>(null);
 
   const [addPost, { isSuccess }] = useAddPostMutation();
+  const [getPost, { data }] = useLazyGetPostQuery();
+  const [updatePost, { isSuccess: isUpdateSuccess }] = useUpdatePostMutation();
 
   const dispatch = useAppDispatch();
 
-  const currentPost = useSelector(
-    (state: RootState) => state.blog.currentPost as Post
-  );
+  const postId = useSelector((state: RootState) => state.blog.postId);
 
   useEffect(() => {
-    if (!currentPost) return;
+    if (!postId) return;
 
-    setFormData(currentPost);
-  }, [currentPost]);
+    getPost(postId);
+
+    setFormData((prevState) => {
+      return { ...prevState, ...data };
+    });
+  }, [data, postId]);
 
   useEffect(() => {
     setFormData(initialState);
-  }, [isSuccess]);
+    dispatch(cancelUpdatePost());
+  }, [isSuccess, isUpdateSuccess]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>
@@ -57,24 +66,9 @@ const CreatePost = () => {
   const handleSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (currentPost) {
-      dispatch(updatePost({ postId: formData.id, post: formData }))
-        .unwrap()
-        .then((res) => {
-          setFormData(initialState);
-          if (errorForm) {
-            setErrorForm(null);
-          }
-        })
-        .catch((error) => setErrorForm(error.error));
+    if (postId) {
+      updatePost(formData);
     } else {
-      if (
-        new Date().toISOString() > formData.publishDate.toString() &&
-        !currentPost
-      ) {
-        throw new Error('Invalid publish date');
-      }
-
       const formDataWithId = { ...formData };
       addPost(formDataWithId);
     }
@@ -178,7 +172,7 @@ const CreatePost = () => {
         <button
           className='group relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-purple-600 to-blue-500 p-0.5 text-sm font-medium text-gray-900 hover:text-white focus:outline-none focus:ring-4 focus:ring-blue-300 group-hover:from-purple-600 group-hover:to-blue-500 dark:text-white dark:focus:ring-blue-800'
           type='submit'
-          disabled={!!currentPost}
+          disabled={!!postId}
         >
           <span className='relative rounded-md bg-white px-5 py-2.5 transition-all duration-75 ease-in group-hover:bg-opacity-0 dark:bg-gray-900'>
             Publish Post

@@ -1,6 +1,9 @@
 import { useAppDispatch } from 'hooks';
-import { deletePost, editPost } from 'pages/blog/blog.slice';
-import { useGetPostListQuery } from 'pages/blog/services';
+import { startEditPost } from 'pages/blog/blog.slice';
+import {
+  useDeletePostMutation,
+  useGetPostListQuery
+} from 'pages/blog/services';
 import { PostItem } from '../PostItem';
 import { SkeletonLoading } from '../SkeletonLoading';
 
@@ -11,13 +14,15 @@ const PostList = () => {
 
   const dispatch = useAppDispatch();
 
-  const handleDeletePost = (id: string) => {
-    dispatch(deletePost(id));
+  const [onDelete] = useDeletePostMutation();
+
+  // get postId, save to slice
+  const handleEditPost = (postId: string) => () => {
+    dispatch(startEditPost(postId));
   };
 
-  // store current post
-  const handleEditPost = (post: Post) => {
-    dispatch(editPost(post));
+  const handleDeletePost = (id: string) => {
+    onDelete(id);
   };
 
   return (
@@ -46,8 +51,8 @@ const PostList = () => {
               <PostItem
                 key={post.id}
                 {...post}
+                onEdit={handleEditPost(post.id)}
                 onDelete={handleDeletePost}
-                onEdit={handleEditPost}
               />
             ))
           )}

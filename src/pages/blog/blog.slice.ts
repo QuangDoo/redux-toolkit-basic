@@ -11,13 +11,15 @@ type PostState = {
   currentPost: Post | null;
   loading: boolean;
   currentRequestId: string | undefined;
+  postId: string | undefined;
 };
 
 const initialState: PostState = {
   postList: [],
   currentPost: null,
   loading: false,
-  currentRequestId: undefined
+  currentRequestId: undefined,
+  postId: undefined
 };
 
 type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
@@ -84,6 +86,12 @@ const blogSlice = createSlice({
       if (action.payload !== null) {
         state.currentPost = action.payload;
       }
+    },
+    startEditPost: (state, action: PayloadAction<string>) => {
+      state.postId = action.payload;
+    },
+    cancelUpdatePost: (state) => {
+      state.postId = undefined;
     }
   },
   // use extraReducers when dont want to create any action
@@ -143,6 +151,6 @@ const blogSlice = createSlice({
 });
 
 const blogReducer = blogSlice.reducer;
-export const { editPost } = blogSlice.actions;
+export const { editPost, startEditPost, cancelUpdatePost } = blogSlice.actions;
 
 export default blogReducer;
