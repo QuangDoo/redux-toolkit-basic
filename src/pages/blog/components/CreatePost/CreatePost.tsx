@@ -4,6 +4,7 @@ import { useAppDispatch } from 'hooks';
 import { cancelUpdatePost } from 'pages/blog/blog.slice';
 import {
   useAddPostMutation,
+  useGetPostQuery,
   useLazyGetPostQuery,
   useUpdatePostMutation
 } from 'pages/blog/services';
@@ -28,14 +29,21 @@ type FormError = {
 const CreatePost = () => {
   const [formData, setFormData] = useState<Post>(initialState);
 
-  const [getPost, { data }] = useLazyGetPostQuery();
+  const postId = useSelector(
+    (state: RootState) => state?.blog?.postId
+  ) as string;
+
+  const { data } = useGetPostQuery(postId, {
+    skip: !postId,
+    refetchOnMountOrArgChange: true
+    //auto call api every 1s use pollingInterval
+    // pollingInterval: 1000
+  });
   const [addPost, { isSuccess, error: addPostError }] = useAddPostMutation();
   const [updatePost, { isSuccess: isUpdateSuccess, error: updatePostError }] =
     useUpdatePostMutation();
 
   const dispatch = useAppDispatch();
-
-  const postId = useSelector((state: RootState) => state.blog.postId);
 
   const errorForm: FormError = useMemo(() => {
     /**
@@ -59,14 +67,10 @@ const CreatePost = () => {
   }, [postId, updatePostError, addPostError]);
 
   useEffect(() => {
-    if (!postId) return;
-
-    getPost(postId);
-
     setFormData((prevState) => {
       return { ...prevState, ...data };
     });
-  }, [data, postId]);
+  }, [data]);
 
   useEffect(() => {
     setFormData(initialState);

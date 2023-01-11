@@ -18,11 +18,30 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 // Mutation: Thường dùng cho các trường hợp thay đổi dữ liệu trên server như POST, PUT, DELETE
 export const blogApi = createApi({
   reducerPath: 'blogApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:4000/' }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'http://localhost:4000/',
+    prepareHeaders(headers, api) {
+      const token = 'ádfjaklsjdfklsadjf';
+
+      // If we have a token set in state, let's assume that we should be passing it.
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+
+      return headers;
+    }
+  }),
   tagTypes: ['Posts'],
+  // global configuration for the api
+  // keepUnusedDataFor: 5,
+  // global configuration for the api
+  // refetchOnMountOrArgChange: 30,
+
   endpoints: (builder) => ({
     getPostList: builder.query<Post[], void>({
       query: () => `posts`,
+      // configuration for an individual endpoint, overriding the api setting
+      keepUnusedDataFor: 5,
       // Provides a list of `Posts` by `id`.
       // If any mutation is executed that `invalidate`s any of these tags, this query will re-run to be always up-to-date.
       // The `LIST` id is a "virtual id" we just made up to be able to invalidate this query specifically if a new `Posts` element was added.
@@ -50,7 +69,16 @@ export const blogApi = createApi({
       }
     }),
     getPost: builder.query<Post, string>({
-      query: (id) => ({ url: `posts/${id}` })
+      query: (id) => ({
+        url: `posts/${id}`,
+        headers: {
+          Hi: 'Toi la Quang'
+        },
+        params: {
+          'first_name': 'Quang',
+          'last-name': 'Do'
+        }
+      })
     }),
     addPost: builder.mutation<Post, Pick<Post, 'id'>>({
       query: (post) => ({
