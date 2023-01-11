@@ -1,3 +1,5 @@
+import classNames from 'classnames';
+import { isEntityError } from 'helper';
 import { useAppDispatch } from 'hooks';
 import { cancelUpdatePost } from 'pages/blog/blog.slice';
 import {
@@ -5,7 +7,7 @@ import {
   useLazyGetPostQuery,
   useUpdatePostMutation
 } from 'pages/blog/services';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store';
 
@@ -18,21 +20,43 @@ const initialState: Post = {
   published: false
 };
 
-type ErrorForm = {
-  publishDate: string;
-};
+// generic type
+type FormError = {
+  [key: string]: string | null;
+} | null;
 
 const CreatePost = () => {
   const [formData, setFormData] = useState<Post>(initialState);
-  const [errorForm, setErrorForm] = useState<ErrorForm | null>(null);
 
-  const [addPost, { isSuccess }] = useAddPostMutation();
   const [getPost, { data }] = useLazyGetPostQuery();
-  const [updatePost, { isSuccess: isUpdateSuccess }] = useUpdatePostMutation();
+  const [addPost, { isSuccess, error: addPostError }] = useAddPostMutation();
+  const [updatePost, { isSuccess: isUpdateSuccess, error: updatePostError }] =
+    useUpdatePostMutation();
 
   const dispatch = useAppDispatch();
 
   const postId = useSelector((state: RootState) => state.blog.postId);
+
+  const errorForm: FormError = useMemo(() => {
+    /**
+     * FetchBaseQueryError: Dùng cho catch error từ fetch api.
+     * ```type FetchBaseQueryError
+     *   status: number
+     *   data: unknown
+     *
+     * SerializedError: Dùng cho lỗi từ user code
+     * ```type SerializedError
+     * name?: string
+     * message?: string
+     * stack?: string
+     * code?: string
+     */
+    const errorResult = postId ? updatePostError : addPostError;
+    if (isEntityError(errorResult)) {
+      return errorResult.data.error as FormError;
+    }
+    return null;
+  }, [postId, updatePostError, addPostError]);
 
   useEffect(() => {
     if (!postId) return;
@@ -135,9 +159,13 @@ const CreatePost = () => {
       <div className='mb-6'>
         <label
           htmlFor='publishDate'
-          className={`mb-2 block text-sm font-medium  dark:text-gray-300 ${
-            !!errorForm?.publishDate ? `text-red-700` : 'text-gray-900'
-          }`}
+          className={classNames(
+            `mb-2 block text-sm font-medium  dark:text-gray-300`,
+            {
+              'text-red-700': Boolean(errorForm?.publishDate),
+              'text-gray-900': !Boolean(errorForm?.publishDate)
+            }
+          )}
         >
           Publish Date
         </label>
@@ -151,6 +179,11 @@ const CreatePost = () => {
           value={formData?.publishDate.toString()}
           onChange={handleChange}
         />
+        {!!errorForm?.publishDate && (
+          <p className='mt-2 text-sm text-red-700'>
+            <span className='font-medium'>Lỗi! {errorForm?.publishDate}</span>
+          </p>
+        )}
       </div>
       <div className='mb-6 flex items-center'>
         <input

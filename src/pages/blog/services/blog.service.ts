@@ -63,7 +63,8 @@ export const blogApi = createApi({
        * match với nó sẽ bị gọi lại
        * Trong trường hợp này getPosts sẽ chạy lại
        */
-      invalidatesTags: (result, error, body) => [{ type: 'Posts', id: 'LIST' }]
+      invalidatesTags: (result, error, body) =>
+        error ? [] : [{ type: 'Posts', id: 'LIST' }]
     }),
     updatePost: builder.mutation<Post, Partial<Post>>({
       query: (body) => ({
@@ -71,14 +72,16 @@ export const blogApi = createApi({
         method: 'PUT',
         body
       }),
-      invalidatesTags: (result) => [{ type: 'Posts', id: result?.id }]
+      invalidatesTags: (result, error) =>
+        error ? [] : [{ type: 'Posts', id: result?.id }]
     }),
     deletePost: builder.mutation<{}, string>({
       query: (id) => ({
         url: `posts/${id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'Posts', id }]
+      invalidatesTags: (result, error, id) =>
+        error ? [] : [{ type: 'Posts', id }]
     })
   })
 });
